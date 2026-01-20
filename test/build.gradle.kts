@@ -13,7 +13,7 @@ kotlin {
     }
 }
 dependencies {
-    implementation(project(":singleton"))
+    implementation(project(":core"))
     implementation(libs.junit)
 }
 
