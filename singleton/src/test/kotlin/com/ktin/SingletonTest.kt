@@ -9,7 +9,7 @@ import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 
-class SingletonCoverageTest {
+class SingletonTest {
     class CounterSingleton private constructor(val id: Int) {
         companion object : Singleton<CounterSingleton>() {
             private var counter = 0
