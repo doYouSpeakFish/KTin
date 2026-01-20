@@ -30,12 +30,12 @@ jobs:
     - name: Run tests with coverage
       run: ./gradlew koverXmlReport
 
-    - name: Add singleton module coverage report to PR
+    - name: Add core module coverage report to PR
       if: ${{ github.event_name == 'pull_request' }}
       uses: mi-kas/kover-report@v1
       with:
-        path: ${{ github.workspace }}/singleton/build/reports/kover/report.xml
-        title: Singleton Module Code Coverage
+        path: ${{ github.workspace }}/core/build/reports/kover/report.xml
+        title: Core Module Code Coverage
         update-comment: true
 
     - name: Add test module coverage report to PR
