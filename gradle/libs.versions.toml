@@ -4,23 +4,12 @@
 
 [versions]
 kotlin = "2.1.10"
-kotlinxDatetime = "0.6.1"
-kotlinxSerializationJSON = "1.7.2"
-kotlinxCoroutines = "1.8.1"
 junit = "4.13.2"
 kover = "0.7.5"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
-kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJSON" }
-kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 
-# Libraries can be bundled together for easier import
-[bundles]
-kotlinxEcosystem = ["kotlinxDatetime", "kotlinxSerialization", "kotlinxCoroutines"]
-
 [plugins]
-kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlinxKover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
