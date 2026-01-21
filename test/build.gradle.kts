@@ -1,16 +1,8 @@
 plugins {
     id("java-library")
     id("buildsrc.convention.kotlin-jvm")
+    id("buildsrc.convention.publishing")
     alias(libs.plugins.kotlinxKover)
-}
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
-    }
 }
 dependencies {
     implementation(project(":core"))
