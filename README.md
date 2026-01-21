@@ -10,6 +10,15 @@ KTin is a very minimalist approach to dependency injection. It provides two abst
 `InjectedSingleton`, and a test rule `KTinTestRule`. We believe, that on top of the tools provided by the kotlin
 programming language, this is all you need to implement dependency injection.
 
+# Setup
+Add the following dependencies:
+```kotlin
+dependencies {
+    implementation("io.github.doyouspeakfish.ktin:core:1.0.1")
+    testImplementation("io.github.doyouspeakfish.ktin:test:1.0.1")
+}
+```
+
 # Declaring Singletons
 A singleton class can be declared using KTin by adding to the class, a companion object that extends the `Singleton` 
 abstract class.
