@@ -1,3 +1,7 @@
+![Maven Central Version](https://img.shields.io/maven-central/v/io.github.doyouspeakfish.ktin/core)
+![GitHub License](https://img.shields.io/github/license/doYouSpeakFish/KTin)
+
+
 # What is KTin?
 KTin is a very lightweight and minimalist dependency injection framework, built with a philosophy that the framework 
 should not attempt to replicate functionality that the programming language is already able to easily provide. Since 
@@ -124,8 +128,8 @@ class MyViewModel(
 val viewModel = MyViewModel(id = "123")
 ```
 
-# What if I want to set at runtime which non-singleton class to inject?
-In this case, create a factory that is a singleton for providing instances. For example:
+# What if I want to inject non-singleton instances of a class at runtime?
+In this case, create a singleton factory for providing instances. For example:
 ```kotlin
 interface MyUseCase {
     companion object {
