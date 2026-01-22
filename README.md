@@ -14,6 +14,12 @@ KTin is a very minimalist approach to dependency injection. It provides two abst
 `InjectedSingleton`, and a test rule `KTinTestRule`. We believe, that on top of the tools provided by the kotlin
 programming language, this is all you need to implement dependency injection.
 
+# Why use KTin?
+- Ultra simple dependency injection
+- No code generation, so faster builds
+- Lazy instantiation and no dependency graph construction on startup, so faster app startup times
+- Leverages built-in kotlin functionality for dependency injection, giving you the full power of the programming language
+
 # Setup
 Add the following dependencies:
 ```kotlin
@@ -24,101 +30,53 @@ dependencies {
 ```
 
 # Declaring Singletons
-A singleton class can be declared using KTin by adding to the class, a companion object that extends the `Singleton` 
-abstract class.
+Let's say we have the following class:
+```kotlin
+class MySingleton(aDependency: Dependency)
+```
+We have two ways of providing this class as a singleton:
+```kotlin
+object MySingletonProvider : Singleton<MySingleton>() {
+    override fun create() = MySingleton(aDependency = Dependency())
+}
+```
+Or if we want to be able to fake it in tests, we can set up what to inject at runtime:
+```kotlin
+object MySingletonProvider : InjectedSingleton<MySingleton>()
 
-Example:
+fun main() {
+    MySingletonProvider.inject { MySingleton(aDependency = Dependency()) } // In tests we could inject a fake instead
+}
+```
+Instances can then be retrieved by calling either the `invoke` operator function providing a constructor style syntax, or the `getInstance` function on the provider:
+```kotlin
+val mySingleton = MySingletonProvider() // This creates a singleton instance
+val mySingletonAgain = MySingletonProvider() // This is the exact same instance as mySingleton
+val mySingletonYetAgain = MySingletonProvider.getInstance() // This provides another way to retrieve the singleton instance
+```
+# Zero-arg constructors for everything
+The provider can be the companion object of the class. If we do this, we have a zero argument constructor that provides singleton instances:
 ```kotlin
 class MySingleton(aDependency: Dependency) {
     companion object : Singleton<MySingleton>() {
-        override fun create() = MySingleton(
-            aDependency = Dependency()
-        )
+        override fun create() = MySingleton(aDependency = Dependency())
     }
 }
-```
-
-The `Singleton` abstract class provides a `getInstance` method for retrieving the singleton instance, and an `invoke`
-operator method for convenience, allowing the companion object to be called like a constructor to retrieve the singleton
-instance. The instance will be created lazily when it is first accessed.
-
-Example:
-
-```kotlin
-val mySingleton = MySingleton() // This creates a singleton instance
-val mySingletonAgain = MySingleton() // This is the exact same instance as mySingleton
-val mySingletonYetAgain = MySingleton.getInstance() // This provides another way to retrieve the singleton instance
-```
-
-If Multiple instances of the same type are needed, or you need to create a singleton instance of a class where the 
-companion object is not available to you, simply create a provider object instead of using the companion object.
-
-Example:
-```kotlin
-class MySingleton(aDependency: Dependency)
-
-object FirstMySingletonProvider : Singleton<MySingleton>() {
-    override fun create() = MySingleton(aDependency = FirstConcreteDependency())
-}
-object SecondMySingletonProvider : Singleton<MySingleton>() {
-    override fun create() = MySingleton(aDependency = SecondConcreteDependency())
-}
-
-// Two different singleton instances are now available via the two providers:
-val firstSingleton: MySingleton = FirstMySingletonProvider()
-val secondSingleton: MySingleton = SecondMySingletonProvider()
-```
-
-# Faking Singletons
-To inject a fake singleton instance, have this provider or companion object extend the `InjectedSingleton` class. This
-provides an `inject` method that can be called to inject an initializer at runtime for creating instances.
-
-A typical example would be injecting a `CoroutineDispatcher`. In tests, a test dispatcher can be injected instead. For
-example:
-```kotlin
-object IoDispatcherProvider : InjectedSingleton<CoroutineDispatcher>()
 
 fun main() {
-    // Choose what to inject at runtime before launching the rest of the app code
-    IoDispatcherProvider.inject { Dispatchers.IO }
-    
-    // Application code can now run using the injected dispatcher
+    val mySingleton = MySingleton()
 }
 ```
 
-# Testing
-To handle cleanup of singleton instances between tests, a `KTinTestRule` should be used. In tests, a test dispatcher 
-can be provided:
-```kotlin
-class MyTests {
-    private val dispatcher = StandardTestDispatcher()
-
-    @get:Rule
-    val testRule = KTinTestRule()
-
-    @Before
-    fun before() {
-        IoDispatcherProvider.inject { dispatcher }
-    }
-    
-    @Test
-    fun aTest() {
-        // ...
-    }
-}
-```
-
-# Injecting non-singleton classes
-Simply use kotlin default arguments!
-
-Example:
+If we combine this with kotlin default arguments, that's all we need to implement dependency injection in an application.
+We can setup every class to have a no-args constructor:
 ```kotlin
 class MyUseCase(mySingleton: MySingleton = MySingleton()) // MySingleton() returns a singleton instance
 
 class MyViewModel(myUseCase: MyUseCase = MyUseCase()) // MyUseCase() returns a fresh instance every time
 ```
 
-This makes it very easy to provide some arguments at runtime. For example:
+We can also easily provide some arguments at runtime if we want. For example:
 ```kotlin
 class MyViewModel(
     id: String, // Not injected, needs to be provided at runtime
@@ -128,19 +86,45 @@ class MyViewModel(
 val viewModel = MyViewModel(id = "123")
 ```
 
-# What if I want to inject non-singleton instances of a class at runtime?
-In this case, create a singleton factory for providing instances. For example:
+# Testing
+To handle cleanup of singleton instances between tests, a `KTinTestRule` should be used. For example, we might want to inject
+a coroutine dispatcher:
 ```kotlin
-interface MyUseCase {
-    companion object {
-        // Optionally, an invoke method can be used here too to provide a zero arg constructor. 
-        // Actual instances will come from the factory which is supplied at runtime.
-        operator fun invoke() = MyUseCaseFactory().createInstance()
+object IoDispatcher : InjectedSingleton<CoroutineDispatcher>()
+
+fun main() {
+    IoDispatcher.inject { Dispatchers.IO }
+}
+```
+In tests, we can then inject a test dispatcher:
+```kotlin
+class MyTests {
+    private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val testRule = KTinTestRule()
+
+    @Before
+    fun before() {
+        IoDispatcher.inject { testDispatcher }
+    }
+    
+    @Test
+    fun aTest() {
+        // ...
     }
 }
+```
+# Injecting factories
+One scenario we might have, is that we want to be able to fake something in tests that is not a singleton. 
+In this case, we can create a singleton factory for providing instances. Let's say we have the following:
+```kotlin
+interface MyUseCase
 
 class DefaultMyUseCase : MyUseCase
-
+```
+We can create a factory for providing instances, and setup what to inject at runtime:
+```kotlin
 fun interface MyUseCaseFactory {
     fun createInstance(): MyUseCase
     
@@ -152,9 +136,18 @@ fun main() {
     MyUseCaseFactory.inject {
         MyUseCaseFactory { DefaultMyUseCase() }
     } // Or in tests, a fake can be injected
-
-    // Two separate instances provided by the factory
-    val firstMyUseCase = MyUseCase()
-    val secondMyUseCase = MyUseCase()
 }
+```
+To make this nicer, we can add an `invoke` method to the companion object of `MyUseCase` that uses the factory to provide instances:
+```kotlin
+interface MyUseCase {
+    companion object {
+        operator fun invoke() = MyUseCaseFactory().createInstance()
+    }
+}
+```
+Then we can create instances of `MyUseCase` as if it was a concrete type with a zero-arg constructor:
+```kotlin
+val firstMyUseCase = MyUseCase()
+val secondMyUseCase = MyUseCase()
 ```
