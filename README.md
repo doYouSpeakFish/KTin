@@ -46,14 +46,22 @@ Or if we want to be able to fake it in tests, we can set up what to inject at ru
 object MySingletonProvider : InjectedSingleton<MySingleton>()
 
 fun main() {
-    MySingletonProvider.inject { MySingleton(aDependency = Dependency()) } // In tests we could inject a fake instead
+    MySingletonProvider.inject {
+        // In tests, a fake can be injected instead
+        MySingleton(aDependency = Dependency())
+    }
 }
 ```
 Instances can then be retrieved by calling either the `invoke` operator function providing a constructor style syntax, or the `getInstance` function on the provider:
 ```kotlin
-val mySingleton = MySingletonProvider() // This creates a singleton instance
-val mySingletonAgain = MySingletonProvider() // This is the exact same instance as mySingleton
-val mySingletonYetAgain = MySingletonProvider.getInstance() // This provides another way to retrieve the singleton instance
+// This creates a singleton instance
+val mySingleton = MySingletonProvider()
+
+// This is the exact same instance as mySingleton
+val mySingletonAgain = MySingletonProvider()
+
+// This provides another way to retrieve the singleton instance
+val mySingletonYetAgain = MySingletonProvider.getInstance()
 ```
 # Zero-arg constructors for everything
 The provider can be the companion object of the class. If we do this, we have a zero argument constructor that provides singleton instances:
@@ -72,9 +80,11 @@ fun main() {
 If we combine this with kotlin default arguments, that's all we need to implement dependency injection in an application.
 We can setup every class to have a no-args constructor:
 ```kotlin
-class MyUseCase(mySingleton: MySingleton = MySingleton()) // MySingleton() returns a singleton instance
+// MySingleton() returns a singleton instance
+class MyUseCase(mySingleton: MySingleton = MySingleton())
 
-class MyViewModel(myUseCase: MyUseCase = MyUseCase()) // MyUseCase() returns a fresh instance every time
+// MyUseCase() returns a fresh instance every time
+class MyViewModel(myUseCase: MyUseCase = MyUseCase())
 ```
 
 We can also easily provide some arguments at runtime if we want. For example:
@@ -167,7 +177,8 @@ class AppDB(config: DbCongif) {
 }
 
 fun main() {
-    AppDB() // This loads the DB, ensuring it is ready for requests
+    // This loads the DB, ensuring it is ready for requests
+    AppDB()
 }
 ```
 An alternative is to provide an already instantiated instance:
