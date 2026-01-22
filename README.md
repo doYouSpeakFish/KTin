@@ -1,6 +1,7 @@
+![KTin Logo](/KTin%20logo.png)
+
 ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.doyouspeakfish.ktin/core)
 ![GitHub License](https://img.shields.io/github/license/doYouSpeakFish/KTin)
-
 
 # What is KTin?
 KTin is a very lightweight and minimalist dependency injection framework, built with a philosophy that the framework 
