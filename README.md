@@ -152,3 +152,32 @@ Then we can create instances of `MyUseCase` as if it was a concrete type with a 
 val firstMyUseCase = MyUseCase()
 val secondMyUseCase = MyUseCase()
 ```
+
+# Eager instantiation
+KTin instantiates singletons lazily. This has performance advantages, reducing startup times and avoiding instantiation of classes that aren't needed, 
+but is not always the desired behaviour. For backend systems, it is recommended to eagerly instantiate dependencies so the application fails early if 
+there is an issue (e.g. failing to connect to a database), and so resources are ready as soon as the first requests come in.
+
+To eagerly instantiate classes with KTin, the easiest way is to retrieve an instance at startup before running the application code:
+```kotlin
+class AppDB(config: DbCongif) {
+    companion object : Singleton<AppDB>() {
+        override fun create() = AppDB(loadConfig())
+    }
+}
+
+fun main() {
+    AppDB() // This loads the DB, ensuring it is ready for requests
+}
+```
+An alternative is to provide an already instantiated instance:
+```kotlin
+class AppDB(config: DbCongif) {
+    companion object : InjectedSingleton<AppDB>()
+}
+
+fun main() {
+    val db = AppDB(loadConfig())
+    AppDB.inject { db }
+}
+```
